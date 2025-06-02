@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Pajak PPh21</title>
+  <style>
+    body { font-family: sans-serif; background: #f8f8f8; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 3rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; }
+    label { display: block; margin-top: 1rem; }
+    input, select, button { width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #007BFF; color: white; border: none; margin-top: 1rem; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .result { margin-top: 2rem; background: #e9f7ef; padding: 1rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Kalkulator Pajak PPh21</h1>
+
+    <label for="nama">Nama Wajib Pajak:</label>
+    <input type="text" id="nama" placeholder="Contoh: Budi Santoso" />
+
+    <label for="penghasilan">Penghasilan Bruto Bulanan (Rp):</label>
+    <input type="number" id="penghasilan" placeholder="Contoh: 10000000" />
+
+    <label for="ptkp">Status PTKP:</label>
+    <select id="ptkp">
+      <option value="54000000">TK/0 (Rp54.000.000)</option>
+      <option value="58500000">K/1 (Rp58.500.000)</option>
+      <option value="63000000">K/2 (Rp63.000.000)</option>
+      <option value="67500000">K/3 (Rp67.500.000)</option>
+    </select>
+
+    <button onclick="hitungPajak()">Hitung Pajak</button>
+
+    <div id="hasil" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    function hitungPajak() {
+      const nama = document.getElementById('nama').value;
+      const penghasilanBulanan = parseFloat(document.getElementById('penghasilan').value);
+      const ptkp = parseFloat(document.getElementById('ptkp').value);
+
+      if (!nama || !penghasilanBulanan) {
+        alert("Mohon lengkapi semua data!");
+        return;
+      }
+
+      const penghasilanTahunan = penghasilanBulanan * 12;
+      const pkp = Math.max(penghasilanTahunan - ptkp, 0);
+
+      let pajak = 0;
+      let sisa = pkp;
+
+      if (sisa > 500000000) {
+        pajak += (sisa - 500000000) * 0.30;
+        sisa = 500000000;
+      }
+      if (sisa > 250000000) {
+        pajak += (sisa - 250000000) * 0.25;
+        sisa = 250000000;
+      }
+      if (sisa > 60000000) {
+        pajak += (sisa - 60000000) * 0.15;
+        sisa = 60000000;
+      }
+      pajak += sisa * 0.05;
+
+      const hasilDiv = document.getElementById('hasil');
+      hasilDiv.style.display = 'block';
+      hasilDiv.innerHTML = `
+        <strong>Nama Wajib Pajak:</strong> ${nama}<br>
+        <strong>Penghasilan Tahunan:</strong> Rp${penghasilanTahunan.toLocaleString('id-ID')}<br>
+        <strong>PTKP:</strong> Rp${ptkp.toLocaleString('id-ID')}<br>
+        <strong>PKP (Penghasilan Kena Pajak):</strong> Rp${pkp.toLocaleString('id-ID')}<br>
+        <strong>Pajak Terutang (Tahunan):</strong> Rp${Math.round(pajak).toLocaleString('id-ID')}<br>
+        <strong>Pajak Bulanan:</strong> Rp${Math.round(pajak / 12).toLocaleString('id-ID')}
+      `;
+    }
+  </script>
+</body>
+</html>
