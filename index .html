@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Pajak PPh21</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header, footer { background: #222; color: white; text-align: center; padding: 1rem; }
+    .form-container { max-width: 600px; margin: 0 auto; padding: 2rem; }
+    label { display: block; margin-bottom: 0.5rem; }
+    input, select { width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+    button { background-color: #007bff; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .hidden { display: none; }
+    .radio-group { display: inline-flex; gap: 20px; }
+    .radio-group label { display: flex; align-items: center; }
+    .radio-group input { margin-left: 5px; }
+
+    /* Remove number input spinner (up/down arrows) */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kalkulator Pajak PPh21</h1>
+  </header>
+
+  <div class="form-container">
+    <!-- Halaman 1: Biodata -->
+    <div id="biodata-form">
+      <h2>Formulir Biodata</h2>
+      <form id="biodata" onsubmit="nextPage(event)">
+        <label for="nama">Nama Wajib Pajak:</label>
+        <input type="text" id="nama" name="nama" required />
+
+        <label for="alamat">Alamat:</label>
+        <input type="text" id="alamat" name="alamat" required />
+
+        <label for="npwp">NPWP:</label>
+        <input type="text" id="npwp" name="npwp" required />
+
+        <label for="jenis-kelamin">Jenis Kelamin:</label>
+        <select id="jenis-kelamin" name="jenis-kelamin" required>
+          <option value="L">Laki-laki</option>
+          <option value="P">Perempuan</option>
+        </select>
+
+        <label for="no-hp">No HP:</label>
+        <input type="text" id="no-hp" name="no-hp" required />
+
+        <label for="jabatan">Jabatan:</label>
+        <input type="text" id="jabatan" name="jabatan" required />
+
+        <button type="submit">Lanjut ke Perhitungan</button>
+      </form>
+    </div>
+
+    <!-- Halaman 2: Perhitungan -->
+    <div id="perhitungan-form" class="hidden">
+      <h2>Perhitungan Pajak PPh21</h2>
+      <form id="perhitungan" onsubmit="calculateTax(event)">
+        <!-- Gaji/Pensiun Bulanan dengan tipe number (hanya angka) -->
+        <label for="gaji">Gaji/Pensiun Bulanan:</label>
+        <input type="number" id="gaji" name="gaji" placeholder="Masukkan Gaji/Pensiun Bulanan" required />
+
+        <!-- Tunjangan PPh dengan tipe number (hanya angka), tidak wajib -->
+        <label for="tunjangan">Tunjangan PPh (Opsional):</label>
+        <input type="number" id="tunjangan" name="tunjangan" placeholder="Masukkan Tunjangan PPh" />
+
+        <!-- Pendapatan Lainnya dengan tipe number (hanya angka), tidak wajib -->
+        <label for="pendapatan">Pendapatan Lainnya (Opsional):</label>
+        <input type="number" id="pendapatan" name="pendapatan" placeholder="Masukkan Pendapatan Lainnya" />
+
+        <label for="tunjangan-jenis">Pilih Jenis Tunjangan PPh:</label>
+        <div class="radio-group">
+          <label>Gross
+            <input type="radio" id="gross" name="tunjangan-jenis" value="Gross" required>
+          </label>
+          <label>Gross-Up
+            <input type="radio" id="gross-up" name="tunjangan-jenis" value="Gross-Up" required>
+          </label>
+        </div>
+
+        <!-- Tarif Efektif Rata-Rata (TER) dihitung otomatis -->
+        <label for="tarif">Tarif Efektif Rata-Rata (%)</label>
+        <input type="number" id="tarif" name="tarif" placeholder="Masukkan Tarif Efektif Rata-Rata (%)" step="0.01" required readonly />
+
+        <label for="ptkp">Status PTKP:</label>
+        <select id="ptkp" name="ptkp" required>
+          <option value="TK/0">Tidak Kawin (TK/0)</option>
+          <option value="TK/1">Tidak Kawin (TK/1)</option>
+          <option value="TK/2">Tidak Kawin (TK/2)</option>
+          <option value="TK/3">Tidak Kawin (TK/3)</option>
+          <option value="K/0">Kawin (K/0)</option>
+          <option value="K/1">Kawin (K/1)</option>
+          <option value="K/2">Kawin (K/2)</option>
+          <option value="K/3">Kawin (K/3)</option>
+          <option value="K/I/0">Kawin & Penghasilan Istri Digabung (K/I/0)</option>
+          <option value="K/I/1">Kawin & Penghasilan Istri Digabung (K/I/1)</option>
+          <option value="K/I/2">Kawin & Penghasilan Istri Digabung (K/I/2)</option>
+          <option value="K/I/3">Kawin & Penghasilan Istri Digabung (K/I/3)</option>
+        </select>
+
+        <button type="submit">Hitung Pajak</button>
+      </form>
+
+      <div id="hasil-pajak" class="hidden">
+        <h3>Hasil Perhitungan Pajak</h3>
+        <p id="pajak-output"></p>
+        <p id="tarif-efektif"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Kalkulator Pajak PPh21</p>
+  </footer>
+
+  <script>
+    // Function untuk pindah ke halaman perhitungan
+    function nextPage(event) {
+      event.preventDefault();
+      document.getElementById("biodata-form").classList.add("hidden");
+      document.getElementById("perhitungan-form").classList.remove("hidden");
+    }
+
+    // Function untuk menghitung pajak
+    function calculateTax(event) {
+      event.preventDefault();
+
+      const gaji = parseFloat(document.getElementById("gaji").value);
+      const tunjangan = parseFloat(document.getElementById("tunjangan").value) || 0;  // Jika tidak diisi, dianggap 0
+      const pendapatanLainnya = parseFloat(document.getElementById("pendapatan").value) || 0; // Jika tidak diisi, dianggap 0
+      const ptkp = document.getElementById("ptkp").value;
+      
+      // Menentukan Tarif Efektif Rata-Rata (TER) berdasarkan total penghasilan
+      let tarifEfektifRata = 0;
+      if (gaji <= 50000000) {
+        tarifEfektifRata = 5;
+      } else if (gaji <= 100000000) {
+        tarifEfektifRata = 10;
+      } else if (gaji <= 150000000) {
+        tarifEfektifRata = 15;
+      } else {
+        tarifEfektifRata = 20;
+      }
+
+      // Set tarif ke input (dihitung otomatis)
+      document.getElementById("tarif").value = tarifEfektifRata;
+
+      // Menghitung PTKP berdasarkan status
+      let ptkpValue = 0;
+      switch (ptkp) {
+        case "TK/0": ptkpValue = 54000000; break;
+        case "TK/1": ptkpValue = 58500000; break;
+        case "TK/2": ptkpValue = 63000000; break;
+        case "TK/3": ptkpValue = 67500000; break;
+        case "K/0": ptkpValue = 63000000; break;
+        case "K/1": ptkpValue = 67500000; break;
+        case "K/2": ptkpValue = 72000000; break;
+        case "K/3": ptkpValue = 76500000; break;
+        case "K/I/0": ptkpValue = 67500000; break;
+        case "K/I/1": ptkpValue = 72000000; break;
+        case "K/I/2": ptkpValue = 76500000; break;
+        case "K/I/3": ptkpValue = 81000000; break;
+      }
+
+      const totalPendapatan = gaji + tunjangan + pendapatanLainnya;
+      const pajakTerutang = totalPendapatan - ptkpValue;
+
+      // Hitung Pajak Berdasarkan Jenis Tunjangan yang dipilih
+      let pajakDikenakan = (tarifEfektifRata / 100) * totalPendapatan;
+
+      if (pajakTerutang <= 0) {
+        document.getElementById("pajak-output").innerText = "Tidak ada pajak yang harus dibayar.";
+        document.getElementById("tarif-efektif").innerText = "";
+      } else {
+        document.getElementById("pajak-output").innerText = `Pajak yang harus dibayar: Rp ${pajakDikenakan.toLocaleString()}`;
+        document.getElementById("tarif-efektif").innerText = `Tarif Efektif Pajak yang Dikenakan: Rp ${pajakDikenakan.toLocaleString()}`;
+      }
+
+      document.getElementById("hasil-pajak").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
